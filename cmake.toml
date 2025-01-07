@@ -2,10 +2,16 @@
 [project]
 name = "http_baklaga"
 
-# TODO: define a target for each of your executables/libraries like this:
-#[target.myexecutable]
-#type = "executable" # static, shared
-#sources = ["src/http_baklaga/*.cpp", "include/http_baklaga/*.hpp"]
-#include-directories = ["include"]
-#compile-features = ["cxx_std_11"]
-#link-libraries = ["target-or-library"]
+[target.http_baklaga]
+type = "interface"
+include-directories = ["include"]
+compile-features = ["cxx_std_20"]
+
+[target.http_baklaga_example]
+type = "executable"
+sources = [
+    "src/main.cpp",
+    "include/**.ipp",
+    "include/**.hpp",
+]
+link-libraries = ["http_baklaga"]
