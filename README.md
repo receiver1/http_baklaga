@@ -19,7 +19,7 @@ This is a whole baklaga for parsing and sending HTTP requests using C++20.
 
 # Socket
 > [!TIP]
-> This library was developed for asio. so you can easily wrap `asio::ip::tcp::socket`.
+> This library was developed for asio so you can easily wrap `asio::ip::tcp::socket`.
 
 To use the library you will need to implement your own socket class, which will be passed to `http::stream`
 ```cpp
@@ -32,7 +32,7 @@ class socket {
     void write();
     void shutdown();
     void close();
-}
+};
 }
 ```
 
