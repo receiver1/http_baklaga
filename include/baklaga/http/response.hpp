@@ -85,9 +85,8 @@ enum class status_code_t : uint16_t {
 
 class response {
  public:
-  response(std::string_view buffer) : version_{}, status_code_{}, headers_{} {
-    parse_(buffer);
-  }
+  response() : version_{}, status_code_{}, headers_{} {}
+  response(std::string_view buffer) : response{} { parse_(buffer); }
 
   response& operator=(std::string_view&& buffer) {
     parse_(buffer);

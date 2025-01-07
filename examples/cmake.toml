@@ -1,0 +1,4 @@
+[target.http_baklaga_example]
+type = "executable"
+sources = ["**.cpp"]
+link-libraries = ["http_baklaga"]

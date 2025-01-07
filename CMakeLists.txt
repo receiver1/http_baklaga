@@ -24,41 +24,27 @@ if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
 	set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS cmake.toml)
 endif()
 
+# Options
+option(BAKLAGA_BUILD_EXAMPLES "" ON)
+
 project(http_baklaga)
 
-# Target: http_baklaga
-add_library(http_baklaga INTERFACE)
-
-target_compile_features(http_baklaga INTERFACE
-	cxx_std_20
-)
-
-target_include_directories(http_baklaga INTERFACE
-	include
-)
-
-# Target: http_baklaga_example
-set(http_baklaga_example_SOURCES
-	cmake.toml
-	"include/baklaga/http/detail/message.hpp"
-	"include/baklaga/http/impl/request.ipp"
-	"include/baklaga/http/impl/response.ipp"
-	"include/baklaga/http/request.hpp"
-	"include/baklaga/http/response.hpp"
-	"include/baklaga/uri/uri_view.hpp"
-	"src/main.cpp"
-)
-
-add_executable(http_baklaga_example)
-
-target_sources(http_baklaga_example PRIVATE ${http_baklaga_example_SOURCES})
-source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${http_baklaga_example_SOURCES})
-
-target_link_libraries(http_baklaga_example PRIVATE
-	http_baklaga
-)
-
-get_directory_property(CMKR_VS_STARTUP_PROJECT DIRECTORY ${PROJECT_SOURCE_DIR} DEFINITION VS_STARTUP_PROJECT)
-if(NOT CMKR_VS_STARTUP_PROJECT)
-	set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT http_baklaga_example)
+# Subdirectory: include
+set(CMKR_CMAKE_FOLDER ${CMAKE_FOLDER})
+if(CMAKE_FOLDER)
+	set(CMAKE_FOLDER "${CMAKE_FOLDER}/include")
+else()
+	set(CMAKE_FOLDER include)
 endif()
+add_subdirectory(include)
+set(CMAKE_FOLDER ${CMKR_CMAKE_FOLDER})
+
+# Subdirectory: examples
+set(CMKR_CMAKE_FOLDER ${CMAKE_FOLDER})
+if(CMAKE_FOLDER)
+	set(CMAKE_FOLDER "${CMAKE_FOLDER}/examples")
+else()
+	set(CMAKE_FOLDER examples)
+endif()
+add_subdirectory(examples)
+set(CMAKE_FOLDER ${CMKR_CMAKE_FOLDER})
