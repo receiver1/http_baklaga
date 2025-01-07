@@ -22,7 +22,7 @@ inline method_t to_method(std::string_view method_str) {
   } else if (method_str == "DELETE") {
     return method_t::delete_;
   }
-  return detail::get_npos<method_t>();
+  return detail::type_npos<method_t>();
 }
 }  // namespace detail
 

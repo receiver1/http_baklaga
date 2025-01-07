@@ -13,13 +13,13 @@ void baklaga::http::request::parse_(std::string_view buffer) {
   auto start_line =
       detail::split_view<3>(buffer.substr(0, start_line_end), " ");
   method_ = detail::to_method(start_line[0]);
-  if (method_ == detail::get_npos<method_t>()) {
+  if (method_ == detail::type_npos<method_t>()) {
     error_ = std::make_error_code(std::errc::operation_not_supported);
     return;
   }
   target_ = start_line[1];
   version_ = detail::to_version(start_line[2]);
-  if (version_ == detail::get_npos<decltype(version_)>()) {
+  if (version_ == detail::type_npos<decltype(version_)>()) {
     error_ = std::make_error_code(std::errc::protocol_not_supported);
     return;
   }

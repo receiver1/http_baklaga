@@ -4,70 +4,72 @@
 #include <array>
 #include <cstdint>
 #include <limits>
+#include <ranges>
 #include <string_view>
 #include <unordered_map>
 
 namespace baklaga::http::detail {
 
+[[maybe_unused]] constexpr std::string_view crlf_delimiter = "\r\n";
+
+using headers_t = std::unordered_map<std::string_view, std::string_view>;
 template <typename Ty>
 concept HasNumericLimits = std::numeric_limits<Ty>::is_specialized;
 
 template <HasNumericLimits Ty>
-[[nodiscard]] constexpr Ty get_npos() noexcept {
+[[nodiscard]] constexpr Ty type_npos() noexcept {
   return std::numeric_limits<Ty>::max();
 }
 
 template <typename Ty, typename UnderlyingTy = std::underlying_type_t<Ty>>
-requires(std::is_enum_v<Ty>&& HasNumericLimits<UnderlyingTy>)
-    [[nodiscard]] constexpr Ty get_npos() noexcept {
+  requires(std::is_enum_v<Ty> && HasNumericLimits<UnderlyingTy>)
+[[nodiscard]] constexpr Ty type_npos() noexcept {
   return static_cast<Ty>(std::numeric_limits<UnderlyingTy>::max());
 }
 
-using headers_t = std::unordered_map<std::string_view, std::string_view>;
-
 template <std::size_t N>
-std::array<std::string_view, N> split_view(std::string_view view,
-                                           std::string_view delim) {
-  std::array<std::string_view, N> ret{};
-  size_t start{0}, end{0}, count{0};
+  requires(N > 0)
+[[nodiscard]] constexpr auto split_view(std::string_view view,
+                                        std::string_view delim) noexcept {
+  std::array<std::string_view, N> result{};
+  size_t count = 0;
 
-  while (count < N &&
-         (end = view.find(delim, start)) != std::string_view::npos) {
-    ret[count++] = view.substr(start, end - start);
-    start = end + delim.size();
+  for (auto part : view | std::views::split(delim)) {
+    if (count >= N)
+      break;
+
+    result[count++] =
+        std::string_view{std::ranges::begin(part), std::ranges::end(part)};
   }
 
-  if (count < N) {
-    ret[count] = view.substr(start);
-  }
-
-  return ret;
+  return result;
 }
 
-uint8_t to_version(std::string_view version_str) {
+inline uint8_t to_version(std::string_view version_str) noexcept {
   if (version_str == "HTTP/1.0") {
     return 10;
   } else if (version_str == "HTTP/1.1") {
     return 11;
   }
-  return std::numeric_limits<uint8_t>::max();
+  return type_npos<uint8_t>();
 }
 
-headers_t to_headers(std::string_view headers_str) {
+inline headers_t to_headers(std::string_view headers_str) {
   headers_t headers{};
   for (size_t begin{}, end{}; end != std::string_view::npos;) {
-    end = headers_str.find("\r\n", begin);
+    end = headers_str.find(crlf_delimiter, begin);
 
     auto header = headers_str.substr(begin, end - begin);
     if (!header.empty()) {
-      auto split = detail::split_view<2>(header, ": ");
-      headers[split[0]] = split[1];
+      auto [name, content] = split_view<2>(header, ": ");
+      headers[name] = content;
     }
 
-    begin = end + 2;
+    begin = end + crlf_delimiter.size();
   }
   return headers;
 }
+
 }  // namespace baklaga::http::detail
 
 #endif  // BAKLAGA_HTTP_DETAIL_MESSAGE_HPP

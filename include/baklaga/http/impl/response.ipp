@@ -3,6 +3,8 @@
 
 #include <charconv>
 
+#include "baklaga/http/detail/message.hpp"
+
 void baklaga::http::response::parse_(std::string_view buffer) {
   auto start_line_end = buffer.find("\r\n");
   if (start_line_end == std::string_view::npos) {
@@ -13,7 +15,7 @@ void baklaga::http::response::parse_(std::string_view buffer) {
   auto start_line =
       detail::split_view<3>(buffer.substr(0, start_line_end), " ");
   version_ = detail::to_version(start_line[0]);
-  if (version_ == std::numeric_limits<uint8_t>::max()) {
+  if (version_ == detail::type_npos<uint8_t>()) {
     error_ = std::make_error_code(std::errc::protocol_not_supported);
     return;
   }
