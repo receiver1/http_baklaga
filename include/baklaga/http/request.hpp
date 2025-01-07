@@ -21,7 +21,7 @@ method_t to_method(std::string_view method_str) {
   }
   return static_cast<method_t>(-1);
 }
-}
+}  // namespace detail
 
 class request {
  public:
@@ -50,7 +50,7 @@ class request {
   headers_t headers_;
   std::error_code error_;
 };
-}
+}  // namespace baklaga::http
 
 #include "baklaga/http/impl/request.ipp"
 

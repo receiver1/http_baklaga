@@ -16,14 +16,13 @@ class socket {
 int main(int argc, char* argv[]) {
   using namespace baklaga;
 
-  auto response = http::get<tcp::socket>("http://example.com/get", "",
+  auto [res, err] = http::get<tcp::socket>("http://example.com/get", "",
                                          {
                                              {"User-Agent", "baklaga"},
                                              {"Accept-Language", "ru-RU"},
-                                         })
-                      .response();
-  if (response.status_code() == http::status_code_t::ok) {
-    std::cout << response.body() << std::endl;
+                                         });
+  if (!err && res.status_code() == http::status_code_t::ok) {
+    std::cout << res.body() << std::endl;
   }
 
   return 0;
