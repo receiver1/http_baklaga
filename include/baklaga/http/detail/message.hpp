@@ -5,8 +5,12 @@
 #include <cstdint>
 #include <limits>
 #include <string_view>
+#include <unordered_map>
 
 namespace baklaga::http::detail {
+
+using headers_t = std::unordered_map<std::string_view, std::string_view>;
+
 template <std::size_t N>
 std::array<std::string_view, N> split_view(std::string_view view,
                                            std::string_view delim) {

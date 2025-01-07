@@ -5,7 +5,10 @@
 #include <string_view>
 #include <system_error>
 
+#include "baklaga/http/detail/message.hpp"
+
 namespace baklaga::http {
+using detail::headers_t;
 enum class method_t : uint8_t { get, post, put, delete_ };
 
 namespace detail {

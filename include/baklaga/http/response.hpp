@@ -2,8 +2,14 @@
 #define BAKLAGA_HTTP_RESPONSE_HPP
 
 #include <cstdint>
+#include <string_view>
+#include <system_error>
+
+#include "baklaga/http/detail/message.hpp"
 
 namespace baklaga::http {
+using detail::headers_t;
+
 enum class status_code_t : uint16_t {
   // Informational
   continue_ = 100,
@@ -102,8 +108,8 @@ class response {
   headers_t headers_;
   std::error_code error_;
 };
-}
+}  // namespace baklaga::http
 
 #include "baklaga/http/impl/response.ipp"
 
-#endif // BAKLAGA_HTTP_RESPONSE_HPP
+#endif  // BAKLAGA_HTTP_RESPONSE_HPP
