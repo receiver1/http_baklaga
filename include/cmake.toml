@@ -1,0 +1,4 @@
+[target.http_baklaga]
+type = "interface"
+include-directories = ["./"]
+compile-features = ["cxx_std_20"]

@@ -2,16 +2,11 @@
 [project]
 name = "http_baklaga"
 
-[target.http_baklaga]
-type = "interface"
-include-directories = ["include"]
-compile-features = ["cxx_std_20"]
+[options]
+BAKLAGA_BUILD_EXAMPLES = true
 
-[target.http_baklaga_example]
-type = "executable"
-sources = [
-    "src/main.cpp",
-    "include/**.ipp",
-    "include/**.hpp",
-]
-link-libraries = ["http_baklaga"]
+[conditions]
+build-examples = "BAKLAGA_BUILD_EXAMPLES"
+
+[subdir.include]
+[subdir.examples]

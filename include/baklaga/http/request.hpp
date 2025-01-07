@@ -12,7 +12,7 @@ using detail::headers_t;
 enum class method_t : uint8_t { get, post, put, delete_ };
 
 namespace detail {
-method_t to_method(std::string_view method_str) {
+inline method_t to_method(std::string_view method_str) {
   if (method_str == "GET") {
     return method_t::get;
   } else if (method_str == "POST") {
@@ -28,10 +28,8 @@ method_t to_method(std::string_view method_str) {
 
 class request {
  public:
-  request(std::string_view buffer)
-      : method_{}, target_{}, version_{}, headers_{} {
-    parse_(buffer);
-  }
+  request() : method_{}, target_{}, version_{}, headers_{} {}
+  request(std::string_view buffer) : request{} { parse_(buffer); }
 
   request& operator=(std::string_view&& buffer) {
     parse_(buffer);
