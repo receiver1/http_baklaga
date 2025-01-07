@@ -9,6 +9,20 @@
 
 namespace baklaga::http::detail {
 
+template <typename Ty>
+concept HasNumericLimits = std::numeric_limits<Ty>::is_specialized;
+
+template <HasNumericLimits Ty>
+[[nodiscard]] constexpr Ty get_npos() noexcept {
+  return std::numeric_limits<Ty>::max();
+}
+
+template <typename Ty, typename UnderlyingTy = std::underlying_type_t<Ty>>
+requires(std::is_enum_v<Ty>&& HasNumericLimits<UnderlyingTy>)
+    [[nodiscard]] constexpr Ty get_npos() noexcept {
+  return static_cast<Ty>(std::numeric_limits<UnderlyingTy>::max());
+}
+
 using headers_t = std::unordered_map<std::string_view, std::string_view>;
 
 template <std::size_t N>
