@@ -1,7 +1,7 @@
 # HTTP Baklaga
 This is a whole baklaga for parsing and sending HTTP requests using C++20.
 
-# Interface
+## Interface
 * baklaga::uri
   * uri_view
   * uri
@@ -17,7 +17,7 @@ This is a whole baklaga for parsing and sending HTTP requests using C++20.
   * put()
   * delete_()
 
-# Socket
+## Socket
 > [!TIP]
 > This library was developed for asio so you can easily wrap `asio::ip::tcp::socket`.
 
@@ -36,5 +36,5 @@ class socket {
 }
 ```
 
-# Example
+## Example
 You can see examples of usage in `/examples` project directory.
