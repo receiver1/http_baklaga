@@ -7,6 +7,7 @@
 #include <system_error>
 #include <type_traits>
 
+#include "baklaga/http/detail/string.hpp"
 #include "baklaga/http/detail/message.hpp"
 #include "baklaga/http/detail/status_code.hpp"
 
@@ -76,8 +77,10 @@ class basic_message {
       result =
           std::format("{:s} {:s} {:s}\r\n", method_str, target_, version_str);
     } else if constexpr (Type == message_t::response) {
+      auto status_str = detail::from_status_code(status_code_);
+
       result = std::format("{:s} {:d} {:s}\r\n", version_str,
-                           static_cast<uint16_t>(status_code_), "OK");
+                           static_cast<uint16_t>(status_code_), status_str);
     }
 
     for (const auto& [name, content] : headers_) {

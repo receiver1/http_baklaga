@@ -9,13 +9,17 @@ endif()
 # Target: http_baklaga_example
 set(http_baklaga_example_SOURCES
 	cmake.toml
-	message_parse.cpp
+	uri_parse.cpp
 )
 
 add_executable(http_baklaga_example)
 
 target_sources(http_baklaga_example PRIVATE ${http_baklaga_example_SOURCES})
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${http_baklaga_example_SOURCES})
+
+target_compile_features(http_baklaga_example PRIVATE
+	cxx_std_20
+)
 
 target_link_libraries(http_baklaga_example PRIVATE
 	http_baklaga

@@ -24,8 +24,8 @@ int main(int argc, char* argv[]) {
 
   // Building response
   baklaga::http::response response{};
-  response.version(10);
-  response.status_code(http::status_code_t::ok);
+  response.version(11);
+  response.status_code(http::status_code_t::not_found);
   response.headers().emplace("User-Agent", "baklaga11");
   response.headers().emplace("Language", "ru-RU");
 

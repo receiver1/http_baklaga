@@ -29,25 +29,7 @@ template <typename Ty, typename UnderlyingTy = std::underlying_type_t<Ty>>
   return static_cast<Ty>(std::numeric_limits<UnderlyingTy>::max());
 }
 
-template <std::size_t N>
-  requires(N > 0)
-[[nodiscard]] constexpr auto split_view(std::string_view view,
-                                        std::string_view delim) noexcept {
-  std::array<std::string_view, N> result{};
-  size_t count = 0;
-
-  for (auto part : view | std::views::split(delim)) {
-    if (count >= N)
-      break;
-
-    result[count++] =
-        std::string_view{std::ranges::begin(part), std::ranges::end(part)};
-  }
-
-  return result;
-}
-
-inline method_t to_method(std::string_view method_str) {
+inline constexpr method_t to_method(std::string_view method_str) {
   if (method_str == "GET") {
     return method_t::get;
   } else if (method_str == "POST") {
@@ -60,7 +42,7 @@ inline method_t to_method(std::string_view method_str) {
   return detail::type_npos<method_t>();
 }
 
-inline std::string_view from_method(method_t method) {
+inline constexpr std::string_view from_method(method_t method) {
   switch (method) {
     case method_t::get:
       return "GET";
@@ -74,7 +56,7 @@ inline std::string_view from_method(method_t method) {
   return {};
 }
 
-inline uint8_t to_version(std::string_view version_str) noexcept {
+inline constexpr uint8_t to_version(std::string_view version_str) noexcept {
   if (version_str == "HTTP/1.0") {
     return 10;
   } else if (version_str == "HTTP/1.1") {
@@ -83,7 +65,7 @@ inline uint8_t to_version(std::string_view version_str) noexcept {
   return type_npos<uint8_t>();
 }
 
-inline std::string_view from_version(uint8_t version) noexcept {
+inline constexpr std::string_view from_version(uint8_t version) noexcept {
   switch (version) {
     case 10:
       return "HTTP/1.0";
