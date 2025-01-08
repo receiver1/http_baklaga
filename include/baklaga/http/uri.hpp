@@ -39,7 +39,6 @@ class basic_uri_authority {
     }
 
     auto colon_pos = buffer.find(':');
-
     if (colon_pos != std::string_view::npos) {
       hostname_ = buffer.substr(0, colon_pos);
       auto port_str = buffer.substr(colon_pos + 1);
@@ -48,6 +47,13 @@ class basic_uri_authority {
     } else {
       hostname_ = buffer;
     }
+  }
+
+  std::string build() const {
+    auto userinfo =
+        username_.empty() ? "" : std::format("{}:{}@", username_, password_);
+    auto port_str = port_ == 0 ? "" : std::format(":{}", port_);
+    return std::format("{}{}{}", userinfo, hostname_, port_str);
   }
 
   auto username() const noexcept { return username_; }
@@ -134,27 +140,19 @@ class basic_uri {
 
   std::string build() const {
     auto scheme_str = scheme_.empty() ? "" : scheme_ + "://";
-    auto user_str =
-        authority_.username().empty()
-            ? ""
-            : authority_.username() + ":" + authority_.password() + "@";
-    auto port_str =
-        authority_.port() == 0 ? "" : ":" + std::to_string(authority_.port());
     auto query_str =
         query_.size() == 0
             ? ""
             : "?" + std::accumulate(std::next(query_.begin()), query_.end(),
                                     std::string{query_.begin()->first} + "=" +
                                         query_.begin()->second,
-                                    [](auto a, const auto& b) {
+                                    [](const auto& a, const auto& b) {
                                       return a + "&" + b.first + "=" + b.second;
                                     });
-    ;
     auto fragment_str = fragment_.empty() ? "" : "#" + fragment_;
 
-    return std::format("{}{}{}{}{}{}{}", scheme_str, user_str,
-                       authority_.hostname(), port_str, path_, query_str,
-                       fragment_str);
+    return std::format("{}{}{}{}{}", scheme_str, authority_.build(), path_,
+                       query_str, fragment_str);
   }
 
   auto scheme() const noexcept { return scheme_; }
