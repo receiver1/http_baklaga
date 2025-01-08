@@ -1,15 +1,9 @@
-#ifndef BAKLAGA_HTTP_RESPONSE_HPP
-#define BAKLAGA_HTTP_RESPONSE_HPP
+#ifndef BAKLAGA_HTTP_DETAIL_STATUS_CODE_HPP
+#define BAKLAGA_HTTP_DETAIL_STATUS_CODE_HPP
 
 #include <cstdint>
-#include <string_view>
-#include <system_error>
 
-#include "baklaga/http/detail/message.hpp"
-
-namespace baklaga::http {
-using detail::headers_t;
-
+namespace baklaga::http::detail {
 enum class status_code_t : uint16_t {
   // Informational
   continue_ = 100,
@@ -82,33 +76,6 @@ enum class status_code_t : uint16_t {
   not_extended = 510,
   network_authentication_required = 511
 };
+}
 
-class response {
- public:
-  response() : version_{}, status_code_{}, headers_{} {}
-  response(std::string_view buffer) : response{} { parse_(buffer); }
-
-  response& operator=(std::string_view&& buffer) {
-    parse_(buffer);
-    return *this;
-  }
-
-  auto version() const { return version_; }
-  auto status_code() const { return status_code_; }
-  auto& headers() { return headers_; }
-  const auto& error() const { return error_; }
-
- private:
-  void parse_(std::string_view buffer);
-
-  uint8_t version_;
-  status_code_t status_code_;
-  std::string_view status_;
-  headers_t headers_;
-  std::error_code error_;
-};
-}  // namespace baklaga::http
-
-#include "baklaga/http/impl/response.ipp"
-
-#endif  // BAKLAGA_HTTP_RESPONSE_HPP
+#endif  // BAKLAGA_HTTP_DETAIL_STATUS_CODE_HPP
