@@ -1,12 +1,20 @@
 # Reference: https://build-cpp.github.io/cmkr/cmake-toml
+[cmake]
+version = "3.15"
+cmkr-include = ".cmake/cmkr.cmake"
+
 [project]
 name = "http_baklaga"
 
 [options]
+BAKLAGA_SINGLE_HEADER = true
 BAKLAGA_BUILD_EXAMPLES = true
 
 [conditions]
+single-header = "BAKLAGA_SINGLE_HEADER"
 build-examples = "BAKLAGA_BUILD_EXAMPLES"
 
 [subdir.include]
+single-header.include-before = [".cmake/embedded.cmake"]
+
 [subdir.examples]

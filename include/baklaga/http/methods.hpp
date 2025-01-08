@@ -4,7 +4,7 @@
 #include <string_view>
 #include <system_error>
 
-#include "baklaga/http/response.hpp"
+#include "baklaga/http/message.hpp"
 
 namespace baklaga::http {
 template <class Socket>

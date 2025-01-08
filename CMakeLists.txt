@@ -12,7 +12,7 @@ if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
 	set(CMKR_ROOT_PROJECT ON)
 
 	# Bootstrap cmkr and automatically regenerate CMakeLists.txt
-	include(cmkr.cmake OPTIONAL RESULT_VARIABLE CMKR_INCLUDE_RESULT)
+	include(".cmake/cmkr.cmake" OPTIONAL RESULT_VARIABLE CMKR_INCLUDE_RESULT)
 	if(CMKR_INCLUDE_RESULT)
 		cmkr()
 	endif()
@@ -25,9 +25,14 @@ if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
 endif()
 
 # Options
+option(BAKLAGA_SINGLE_HEADER "" ON)
 option(BAKLAGA_BUILD_EXAMPLES "" ON)
 
 project(http_baklaga)
+
+if(BAKLAGA_SINGLE_HEADER) # single-header
+	include(".cmake/embedded.cmake")
+endif()
 
 # Subdirectory: include
 set(CMKR_CMAKE_FOLDER ${CMAKE_FOLDER})
