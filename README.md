@@ -2,11 +2,9 @@
 This is a whole baklaga for parsing and sending HTTP requests using C++20.
 
 ## Interface
-* baklaga::uri
+* baklaga::http
   * uri_view
   * uri
-
-* baklaga::http
   * request_view
   * response_view
   * request
