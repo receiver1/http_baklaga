@@ -48,20 +48,17 @@ class basic_message {
       }
       target_ = start_line[1];
       version_ = detail::to_version(start_line[2]);
-      if (version_ == detail::type_npos<decltype(version_)>()) {
-        error_ = std::make_error_code(std::errc::protocol_not_supported);
-        return;
-      }
     } else if constexpr (Type == message_t::response) {
       version_ = detail::to_version(start_line[0]);
-      if (version_ == detail::type_npos<uint8_t>()) {
-        error_ = std::make_error_code(std::errc::protocol_not_supported);
-        return;
-      }
       std::from_chars(start_line[1].data(),
                       start_line[1].data() + start_line[1].size(),
                       reinterpret_cast<uint16_t&>(status_code_));
       // status_ = start_line[2];
+    }
+
+    if (version_ == detail::type_npos<decltype(version_)>()) {
+      error_ = std::make_error_code(std::errc::protocol_not_supported);
+      return;
     }
 
     headers_ = detail::to_headers(
