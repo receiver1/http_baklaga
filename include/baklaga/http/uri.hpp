@@ -25,27 +25,28 @@ class basic_uri_authority {
   }
 
   void parse(std::string_view buffer) {
-    auto at_pos = buffer.find('@');
-    if (at_pos != std::string_view::npos) {
-      auto userinfo = buffer.substr(0, at_pos);
-      auto colon_pos = userinfo.find(':');
-      if (colon_pos != std::string_view::npos) {
-        username_ = userinfo.substr(0, colon_pos);
-        password_ = userinfo.substr(colon_pos + 1);
-      } else {
-        username_ = userinfo;
+    auto split_by = [](std::string_view str, char delimiter) {
+      auto pos = str.find(delimiter);
+      if (pos != std::string_view::npos) {
+        return std::make_pair(str.substr(0, pos), str.substr(pos + 1));
+      }
+      return std::make_pair(str, std::string_view{});
+    };
+
+    if (auto at_pos = buffer.find('@'); at_pos != std::string_view::npos) {
+      auto [userinfo, remaining] = split_by(buffer.substr(0, at_pos), ':');
+      username_ = userinfo;
+      if (!remaining.empty()) {
+        password_ = remaining;
       }
       buffer.remove_prefix(at_pos + 1);
     }
 
-    auto colon_pos = buffer.find(':');
-    if (colon_pos != std::string_view::npos) {
-      hostname_ = buffer.substr(0, colon_pos);
-      auto port_str = buffer.substr(colon_pos + 1);
-      std::from_chars(port_str.data(), port_str.data() + port_str.size(),
-                      port_);
-    } else {
-      hostname_ = buffer;
+    auto [host, port_str] = split_by(buffer, ':');
+    hostname_ = host;
+    if (!port_str.empty()) {
+      auto port_ptr = port_str.data();
+      std::from_chars(port_ptr, port_ptr + port_str.size(), port_);
     }
   }
 
@@ -126,30 +127,31 @@ class basic_uri {
 
     auto query_start = buffer.find('?');
     path_ = buffer.substr(0, query_start);
-    if (query_start != std::string_view::npos) {
-      auto query_str = buffer.substr(query_start + 1);
-      for (auto part : query_str | std::views::split('&')) {
-        auto [key, value] =
-            detail::split_view<2>(std::string_view(std::ranges::begin(part),
-                                                   std::ranges::end(part)),
-                                  "=");
-        query_.emplace(key, value);
-      }
+    if (query_start == std::string_view::npos)
+      return;
+
+    auto query_str = buffer.substr(query_start + 1);
+    for (auto part : query_str | std::views::split('&')) {
+      auto [key, value] = detail::split_view<2>(part, "=");
+      query_.emplace(key, value);
     }
   }
 
   std::string build() const {
     auto scheme_str = scheme_.empty() ? "" : scheme_ + "://";
-    auto query_str =
-        query_.size() == 0
-            ? ""
-            : "?" + std::accumulate(std::next(query_.begin()), query_.end(),
-                                    std::string{query_.begin()->first} + "=" +
-                                        query_.begin()->second,
-                                    [](const auto& a, const auto& b) {
-                                      return a + "&" + b.first + "=" + b.second;
-                                    });
-    auto fragment_str = fragment_.empty() ? "" : "#" + fragment_;
+
+    std::string query_str;
+    if (!query_.empty()) {
+      query_str = "?";
+      for (const auto& [key, value] : query_) {
+        if (query_str.size() > 1) {
+          query_str.append("&");
+        }
+        query_str += std::format("{}={}", key, value);
+      }
+    }
+
+    std::string fragment_str = fragment_.empty() ? "" : "#" + fragment_;
 
     return std::format("{}{}{}{}{}", scheme_str, authority_.build(), path_,
                        query_str, fragment_str);
