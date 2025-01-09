@@ -160,9 +160,10 @@ class basic_message {
 
   bool parse_response_start_line(const start_line_t& start_line) {
     version_ = detail::to_version(start_line[0]);
-    auto [status_code_bytes, size] = {start_line[1], start_line[1].size()};
+    auto status_code = start_line[1];
     auto status_parse_result =
-        std::from_chars(status_code_bytes, status_code_bytes + size,
+        std::from_chars(status_code.data(),
+                        status_code.data() + status_code.size(),
                         reinterpret_cast<uint16_t&>(status_code_));
 
     if (status_parse_result.ec != std::errc{}) {
