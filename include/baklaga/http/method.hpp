@@ -1,5 +1,5 @@
-#ifndef BAKLAGA_HTTP_METHODS_HPP
-#define BAKLAGA_HTTP_METHODS_HPP
+#ifndef BAKLAGA_HTTP_METHOD_HPP
+#define BAKLAGA_HTTP_METHOD_HPP
 
 #include <string_view>
 #include <system_error>
@@ -15,4 +15,4 @@ std::tuple<http::response, std::error_code> get(std::string_view uri,
 }
 }  // namespace baklaga::http
 
-#endif  // BAKLAGA_HTTP_METHODS_HPP
+#endif  // BAKLAGA_HTTP_METHOD_HPP

@@ -15,6 +15,26 @@ This is a whole baklaga for parsing and sending HTTP requests using C++20.
   * put()
   * delete_()
 
+## Status
+* ❔ — not planned (can be done by yourself if required)
+* ✔️ — already completed
+* ❌ — will be completed
+
+|Feature|Status|
+|-|-|
+|Persistent connections|❌|
+|Pararrel requests|❌|
+|Connection states|❌|
+|Chunked transfer|❌|
+|Status codes|✔️|
+|User headers|✔️|
+|HTTPS|❔|
+|Cookies support|❔|
+|Requests caching|❔|
+|Content compression|❔|
+|Basic authentication|❔|
+|Digest authentication|❔|
+
 ## Socket
 > [!TIP]
 > This library was developed for asio so you can easily wrap `asio::ip::tcp::socket`.
