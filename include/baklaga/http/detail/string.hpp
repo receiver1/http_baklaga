@@ -1,19 +1,19 @@
 #ifndef BAKLAGA_HTTP_DETAIL_STRING_HPP
 #define BAKLAGA_HTTP_DETAIL_STRING_HPP
 
-#include <ranges>
 #include <array>
+#include <ranges>
 #include <string_view>
 
 namespace baklaga::http::detail {
 template <std::size_t N>
   requires(N > 0)
-[[nodiscard]] constexpr auto split_view(std::string_view view,
+[[nodiscard]] constexpr auto split_view(std::ranges::view auto buffer,
                                         std::string_view delim) noexcept {
   std::array<std::string_view, N> result{};
   size_t count = 0;
 
-  for (auto part : view | std::views::split(delim)) {
+  for (auto part : buffer | std::views::split(delim)) {
     if (count >= N)
       break;
 
@@ -23,6 +23,6 @@ template <std::size_t N>
 
   return result;
 }
-}  // namespace baklaga::http::string
+}  // namespace baklaga::http::detail
 
 #endif  // BAKLAGA_HTTP_DETAIL_STRING_HPP
