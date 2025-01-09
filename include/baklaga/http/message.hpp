@@ -7,9 +7,9 @@
 #include <system_error>
 #include <type_traits>
 
-#include "baklaga/http/detail/string.hpp"
 #include "baklaga/http/detail/message.hpp"
 #include "baklaga/http/detail/status_code.hpp"
+#include "baklaga/http/detail/string.hpp"
 
 namespace baklaga::http {
 using detail::headers_t;
@@ -21,11 +21,12 @@ enum class message_t { request, response };
 template <message_t Type, bool Mutable = false>
 class basic_message {
  public:
+  using start_line_t = std::array<std::string_view, 3>;
   using underlying_t =
       std::conditional_t<Mutable, std::string, std::string_view>;
 
-  basic_message() : method_{}, target_{}, version_{}, headers_{} {}
-  basic_message(std::string_view buffer) : basic_message{} { parse(buffer); }
+  basic_message() = default;
+  explicit basic_message(std::string_view buffer) { parse(buffer); }
 
   basic_message& operator=(std::string_view buffer) {
     parse(buffer);
@@ -41,20 +42,8 @@ class basic_message {
 
     auto start_line =
         detail::split_view<3>(buffer.substr(0, start_line_end), " ");
-    if constexpr (Type == message_t::request) {
-      method_ = detail::to_method(start_line[0]);
-      if (method_ == detail::type_npos<method_t>()) {
-        error_ = std::make_error_code(std::errc::operation_not_supported);
-        return;
-      }
-      target_ = start_line[1];
-      version_ = detail::to_version(start_line[2]);
-    } else if constexpr (Type == message_t::response) {
-      version_ = detail::to_version(start_line[0]);
-      std::from_chars(start_line[1].data(),
-                      start_line[1].data() + start_line[1].size(),
-                      reinterpret_cast<uint16_t&>(status_code_));
-      // status_ = start_line[2];
+    if (!parse_start_line(start_line)) {
+      return;
     }
 
     if (version_ == detail::type_npos<decltype(version_)>()) {
@@ -142,6 +131,50 @@ class basic_message {
   operator std::string() const { return build(); }
 
  private:
+  bool parse_start_line(const start_line_t& start_line) {
+    if constexpr (Type == message_t::request) {
+      parse_request_start_line(start_line);
+    } else if constexpr (Type == message_t::response) {
+      bool parsed = parse_response_start_line(start_line);
+      if (!parsed) {
+        return false;
+      }
+      // status_ = start_line[2];
+    }
+
+    if (version_ == detail::type_npos<decltype(version_)>()) {
+      return set_error(std::errc::protocol_not_supported);
+    }
+
+    return true;
+  }
+
+  void parse_request_start_line(const start_line_t& start_line) {
+    method_ = detail::to_method(start_line[0]);
+    if (method_ == detail::type_npos<method_t>()) {
+      return set_error(std::errc::operation_not_supported);
+    }
+    target_ = start_line[1];
+    version_ = detail::to_version(start_line[2]);
+  }
+
+  bool parse_response_start_line(const start_line_t& start_line) {
+    version_ = detail::to_version(start_line[0]);
+    auto [status_code_bytes, size] = {start_line[1], start_line[1].size()};
+    auto status_parse_result =
+        std::from_chars(status_code_bytes, status_code_bytes + size,
+                        reinterpret_cast<uint16_t&>(status_code_));
+
+    if (status_parse_result.ec != std::errc{}) {
+      return set_error(std::errc::protocol_not_supported);
+    }
+  }
+
+  bool set_error(std::errc code) noexcept {
+    error_ = std::make_error_code(code);
+    return false;
+  }
+
   method_t method_;
   status_code_t status_code_;
   underlying_t target_;
