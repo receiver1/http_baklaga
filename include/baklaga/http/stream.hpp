@@ -1,18 +1,20 @@
 #ifndef BAKLAGA_HTTP_STREAM_HPP
 #define BAKLAGA_HTTP_STREAM_HPP
 
+#include "baklaga/http/concept/socket.hpp"
 #include "baklaga/http/message.hpp"
 
 namespace baklaga::http {
-template <class Socket>
+template <concept_::socket Socket>
 class stream {
  public:
+  stream() = default;
   stream(Socket&& socket) : socket_(std::move(socket)) {}
-  ~stream() { socket_.close(); }
+  ~stream() { }
 
-  void connect() {}
-  void request(const http::request& request);
-  void shutdown() {}
+  // void connect() {}
+  // void request(const http::request& request);
+  // void shutdown() {}
 
  private:
   Socket socket_;

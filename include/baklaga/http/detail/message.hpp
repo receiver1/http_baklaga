@@ -8,6 +8,8 @@
 #include <string_view>
 #include <unordered_map>
 
+#include "baklaga/http/detail/string.hpp"
+
 namespace baklaga::http::detail {
 
 [[maybe_unused]] constexpr std::string_view crlf_delimiter = "\r\n";
