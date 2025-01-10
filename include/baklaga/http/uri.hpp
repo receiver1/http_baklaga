@@ -1,5 +1,5 @@
-#ifndef BAKLAGA_URI_URI_VIEW_HPP
-#define BAKLAGA_URI_URI_VIEW_HPP
+#ifndef BAKLAGA_HTTP_URI_HPP
+#define BAKLAGA_HTTP_URI_HPP
 
 #include <charconv>
 #include <cstdint>
@@ -200,4 +200,4 @@ using uri_view = basic_uri<>;
 using uri = basic_uri<true>;
 }  // namespace baklaga::http
 
-#endif  // BAKLAGA_URI_URI_VIEW_HPP
+#endif  // BAKLAGA_HTTP_URI_HPP

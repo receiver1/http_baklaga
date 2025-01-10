@@ -21,7 +21,7 @@ endif()
 # )
 
 execute_process(
-    COMMAND ${QUOM_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/include/baklaga/http.hpp ${CMAKE_CURRENT_SOURCE_DIR}/single-header/baklaga.hpp --include_directory "${CMAKE_CURRENT_SOURCE_DIR}/include"
+    COMMAND ${QUOM_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/include/baklaga/http.hpp ${CMAKE_CURRENT_SOURCE_DIR}/single-header/baklaga.hpp -g BAKLAGA_HTTP_.*_HPP -I "${CMAKE_CURRENT_SOURCE_DIR}/include"
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
     OUTPUT_VARIABLE QUOM_OUTPUT
     ERROR_VARIABLE QUOM_ERROR

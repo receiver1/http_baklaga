@@ -1,5 +1,5 @@
 #include <baklaga/http/uri.hpp>
-#include <baklaga/http/uri_coding.hpp>
+#include <baklaga/http/uri_encode.hpp>
 #include <iostream>
 #include <string_view>
 
