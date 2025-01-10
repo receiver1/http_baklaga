@@ -1,10 +1,8 @@
 #ifndef BAKLAGA_HTTP_DETAIL_MESSAGE_HPP
 #define BAKLAGA_HTTP_DETAIL_MESSAGE_HPP
 
-#include <array>
 #include <cstdint>
 #include <limits>
-#include <ranges>
 #include <string_view>
 #include <unordered_map>
 
