@@ -26,6 +26,7 @@ This is a whole baklaga for parsing and sending HTTP requests using C++20.
 |Pararrel requests|❌|
 |Connection states|❌|
 |Chunked transfer|❌|
+|URI encoding|✔️|
 |Status codes|✔️|
 |User headers|✔️|
 |HTTPS|❔|

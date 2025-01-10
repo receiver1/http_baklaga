@@ -1,4 +1,5 @@
 #include <baklaga/http/uri.hpp>
+#include <baklaga/http/uri_coding.hpp>
 #include <iostream>
 #include <string_view>
 
@@ -6,7 +7,8 @@ int main(int argc, char* argv[]) {
   using namespace baklaga;
 
   std::string_view uri_str{
-      "https://receiver:annihilatorq@example.com:443/index.php?param1=value1&param2=value2#fragment"};
+      "https://receiver:annihilatorq@example.com:443/"
+      "index.php?param1=value1&param2=value2#fragment"};
 
   // Pasring URI
   http::uri_view uri{uri_str};
@@ -34,7 +36,8 @@ int main(int argc, char* argv[]) {
   uri2.query().emplace("param2", "value2");
   uri2.fragment("fragment");
 
-  std::cout << "Builded: " << uri2.build() << std::endl;
+  std::cout << "Builded: " << http::uri_encode(uri2.build())
+            << std::endl;
 
   return 0;
 }
