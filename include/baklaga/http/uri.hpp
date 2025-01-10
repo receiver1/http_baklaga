@@ -18,10 +18,18 @@ class basic_uri_authority {
   using underlying_t =
       std::conditional_t<Mutable, std::string, std::string_view>;
 
-  basic_uri_authority() : username_(), password_(), hostname_(), port_{} {}
-  basic_uri_authority(std::string_view buffer) : basic_uri_authority{} {
-    parse(buffer);
-  }
+  /// Empty constructor
+  basic_uri_authority() = default;
+
+  /// Host constructor
+  basic_uri_authority(std::string_view hostname, uint16_t port) : hostname_{hostname}, port_{port} {}
+
+  /// Userinfo constructor
+  basic_uri_authority(std::string_view username, std::string_view password, std::string_view hostname, uint16_t port = 0)
+      : username_{username}, password_{password}, hostname_{hostname}, port_{port} {}
+
+  /// Parsing constructor
+  basic_uri_authority(std::string_view buffer) { parse(buffer); }
 
   void parse(std::string_view buffer) {
     auto split_by = [](std::string_view str, char delimiter) {

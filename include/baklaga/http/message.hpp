@@ -25,8 +25,29 @@ class basic_message {
   using underlying_t =
       std::conditional_t<Mutable, std::string, std::string_view>;
 
+  /// Empty constructor
   basic_message() = default;
-  explicit basic_message(std::string_view buffer) { parse(buffer); }
+
+  /// Copy constructor
+  basic_message(const basic_message& other) = default;
+
+  /// Request constructor
+  basic_message<message_t::request, Mutable>(method_t method,
+                                             std::string_view target,
+                                             uint8_t version, headers_t headers)
+      : method_{method},
+        target_{target},
+        version_{version},
+        headers_{headers} {}
+
+  /// Response constructor
+  basic_message<message_t::response, Mutable>(uint8_t version,
+                                              status_code_t status_code,
+                                              headers_t headers)
+      : version_{version}, status_code_{status_code}, headers_{headers} {}
+
+  /// Parsing constructor
+  basic_message(std::string_view buffer) { parse(buffer); }
 
   basic_message& operator=(std::string_view buffer) {
     parse(buffer);

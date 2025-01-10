@@ -3,6 +3,7 @@
 
 #include "baklaga/http/concept/socket.hpp"
 #include "baklaga/http/message.hpp"
+#include "baklaga/http/uri.hpp"
 
 namespace baklaga::http {
 template <concept_::socket Socket>
@@ -12,9 +13,10 @@ class stream {
   stream(Socket&& socket) : socket_(std::move(socket)) {}
   ~stream() { }
 
-  // void connect() {}
-  // void request(const http::request& request);
-  // void shutdown() {}
+  void connect(http::uri_view uri) {}
+  void write(http::request request);
+  http::response_view read();
+  void shutdown() {}
 
  private:
   Socket socket_;
