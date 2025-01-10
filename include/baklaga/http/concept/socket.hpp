@@ -6,6 +6,8 @@
 #include <string_view>
 #include <system_error>
 
+#include "baklaga/http/concept/buffer.hpp"
+
 namespace baklaga::http::concept_ {
 template <class Socket>
 concept socket = requires(Socket s, std::error_code& error) {
@@ -13,8 +15,8 @@ concept socket = requires(Socket s, std::error_code& error) {
   {
     s.connect(std::string_view{}, std::string_view{}, error)
   } -> std::same_as<void>;
-  { s.read(std::span<uint8_t>{}, error) } -> std::same_as<size_t>;
-  { s.write(std::span<uint8_t>{}, error) } -> std::same_as<size_t>;
+  { s.read(ReadBuffer<uint8_t>, error) } -> std::same_as<size_t>;
+  { s.write(std::span<const uint8_t>{}, error) } -> std::same_as<size_t>;
   { s.shutdown(error) } -> std::same_as<void>;
   { s.close(error) } -> std::same_as<void>;
 };
