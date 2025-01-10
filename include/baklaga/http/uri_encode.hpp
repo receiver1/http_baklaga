@@ -5,6 +5,8 @@
 #include <string>
 #include <string_view>
 
+#include "baklaga/http/detail/string.hpp"
+
 namespace baklaga::http {
 inline std::string uri_encode(std::string_view buffer) {
   std::string result{};
@@ -25,8 +27,7 @@ inline std::string uri_decode(std::string_view buffer) {
   for (size_t i = 0; i < buffer.size(); ++i) {
     if (buffer[i] == '%' && i + 2 < buffer.size()) {
       auto hex = buffer.substr(i + 1, 2);
-      uint8_t c{};
-      std::from_chars(hex.data(), hex.data() + hex.size(), c, 16);
+      auto [c, _] = detail::to_arithmetic<uint8_t>(hex, 16);
       result.push_back(c);
       i += 2;
     } else {

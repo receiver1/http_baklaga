@@ -161,12 +161,11 @@ class basic_message {
   bool parse_response_start_line(const start_line_t& start_line) {
     version_ = detail::to_version(start_line[0]);
     auto status_code = start_line[1];
-    auto status_parse_result =
-        std::from_chars(status_code.data(),
-                        status_code.data() + status_code.size(),
-                        reinterpret_cast<uint16_t&>(status_code_));
+    auto [result, ec] = detail::to_arithmetic<status_code_t>(status_code);
 
-    if (status_parse_result.ec != std::errc{}) {
+    if (!ec) {
+      status_code_ = result;
+    } else {
       return set_error(std::errc::protocol_not_supported);
     }
   }

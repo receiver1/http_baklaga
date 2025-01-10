@@ -1,7 +1,6 @@
 #ifndef BAKLAGA_HTTP_URI_HPP
 #define BAKLAGA_HTTP_URI_HPP
 
-#include <charconv>
 #include <cstdint>
 #include <format>
 #include <ranges>
@@ -44,8 +43,8 @@ class basic_uri_authority {
     auto [host, port_str] = split_by(buffer, ':');
     hostname_ = host;
     if (!port_str.empty()) {
-      auto port_ptr = port_str.data();
-      std::from_chars(port_ptr, port_ptr + port_str.size(), port_);
+      auto [result, _] = detail::to_arithmetic<uint16_t>(port_str);
+      port_ = result;
     }
   }
 

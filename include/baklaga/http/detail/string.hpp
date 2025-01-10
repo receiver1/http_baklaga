@@ -2,8 +2,10 @@
 #define BAKLAGA_HTTP_DETAIL_STRING_HPP
 
 #include <array>
+#include <charconv>
 #include <ranges>
 #include <string_view>
+#include <system_error>
 
 namespace baklaga::http::detail {
 template <std::size_t N>
@@ -23,6 +25,24 @@ template <std::size_t N>
 
   return result;
 }
+
+template <typename T, typename DecayedT = std::decay_t<T>>
+  requires(std::is_arithmetic_v<DecayedT>)
+struct convert_result_t {
+  DecayedT value;
+  std::error_code ec;
+};
+
+template <typename T, typename DecayedT = std::decay_t<T>>
+  requires(std::is_arithmetic_v<DecayedT>)
+[[nodiscard]] constexpr auto to_arithmetic(std::ranges::sized_range auto buffer,
+                                           const int base = 10) noexcept {
+  convert_result_t<DecayedT> result{};
+  std::from_chars(buffer.data(), buffer.data() + buffer.size(), result.value,
+                  base);
+  return result;
+}
+
 }  // namespace baklaga::http::detail
 
 #endif  // BAKLAGA_HTTP_DETAIL_STRING_HPP
