@@ -1,7 +1,6 @@
 #ifndef BAKLAGA_HTTP_HPP
 #define BAKLAGA_HTTP_HPP
 
-#include <charconv>
 #include <cstdint>
 #include <format>
 #include <ranges>
@@ -10,8 +9,11 @@
 #include <unordered_map>
 
 #include <array>
+#include <charconv>
 #include <ranges>
 #include <string_view>
+#include <system_error>
+#include <type_traits>
 
 namespace baklaga::http::detail {
 template <std::size_t N>
@@ -31,6 +33,34 @@ template <std::size_t N>
 
   return result;
 }
+
+template <typename T, typename DecayedT = std::decay_t<T>>
+  requires(std::is_arithmetic_v<DecayedT>)
+struct convert_result_t {
+  DecayedT value;
+  std::error_code ec;
+};
+
+template <typename T, typename DecayedT = std::decay_t<T>>
+  requires(std::is_arithmetic_v<DecayedT>)
+[[nodiscard]] constexpr auto to_arithmetic(std::ranges::sized_range auto buffer,
+                                           const int base = 10) noexcept {
+  convert_result_t<DecayedT> result{};
+  std::from_chars(buffer.data(), buffer.data() + buffer.size(), result.value,
+                  base);
+  return result;
+}
+
+template <typename T, typename DecayedT = std::decay_t<T>>
+  requires(std::is_arithmetic_v<DecayedT>)
+[[nodiscard]] constexpr auto to_arithmetic(std::underlying_type_t<T> buffer,
+                                           const int base = 10) noexcept {
+  convert_result_t<DecayedT> result{};
+  std::from_chars(buffer.data(), buffer.data() + buffer.size(), result.value,
+                  base);
+  return result;
+}
+
 }  // namespace baklaga::http::detail
 
 namespace baklaga::http {
@@ -40,10 +70,18 @@ class basic_uri_authority {
   using underlying_t =
       std::conditional_t<Mutable, std::string, std::string_view>;
 
-  basic_uri_authority() : username_(), password_(), hostname_(), port_{} {}
-  basic_uri_authority(std::string_view buffer) : basic_uri_authority{} {
-    parse(buffer);
-  }
+  /// Empty constructor
+  basic_uri_authority() = default;
+
+  /// Host constructor
+  basic_uri_authority(std::string_view hostname, uint16_t port) : hostname_{hostname}, port_{port} {}
+
+  /// Userinfo constructor
+  basic_uri_authority(std::string_view username, std::string_view password, std::string_view hostname, uint16_t port = 0)
+      : username_{username}, password_{password}, hostname_{hostname}, port_{port} {}
+
+  /// Parsing constructor
+  basic_uri_authority(std::string_view buffer) { parse(buffer); }
 
   void parse(std::string_view buffer) {
     auto split_by = [](std::string_view str, char delimiter) {
@@ -66,8 +104,8 @@ class basic_uri_authority {
     auto [host, port_str] = split_by(buffer, ':');
     hostname_ = host;
     if (!port_str.empty()) {
-      auto port_ptr = port_str.data();
-      std::from_chars(port_ptr, port_ptr + port_str.size(), port_);
+      auto [result, _] = detail::to_arithmetic<uint16_t>(port_str);
+      port_ = result;
     }
   }
 
@@ -246,8 +284,7 @@ inline std::string uri_decode(std::string_view buffer) {
   for (size_t i = 0; i < buffer.size(); ++i) {
     if (buffer[i] == '%' && i + 2 < buffer.size()) {
       auto hex = buffer.substr(i + 1, 2);
-      uint8_t c{};
-      std::from_chars(hex.data(), hex.data() + hex.size(), c, 16);
+      auto [c, _] = detail::to_arithmetic<uint8_t>(hex, 16);
       result.push_back(c);
       i += 2;
     } else {
@@ -265,10 +302,8 @@ inline std::string uri_decode(std::string_view buffer) {
 #include <system_error>
 #include <type_traits>
 
-#include <array>
 #include <cstdint>
 #include <limits>
-#include <ranges>
 #include <string_view>
 #include <unordered_map>
 
@@ -533,8 +568,29 @@ class basic_message {
   using underlying_t =
       std::conditional_t<Mutable, std::string, std::string_view>;
 
+  /// Empty constructor
   basic_message() = default;
-  explicit basic_message(std::string_view buffer) { parse(buffer); }
+
+  /// Copy constructor
+  basic_message(const basic_message& other) = default;
+
+  /// Request constructor
+  basic_message<message_t::request, Mutable>(method_t method,
+                                             std::string_view target,
+                                             uint8_t version, headers_t headers)
+      : method_{method},
+        target_{target},
+        version_{version},
+        headers_{headers} {}
+
+  /// Response constructor
+  basic_message<message_t::response, Mutable>(uint8_t version,
+                                              status_code_t status_code,
+                                              headers_t headers)
+      : version_{version}, status_code_{status_code}, headers_{headers} {}
+
+  /// Parsing constructor
+  basic_message(std::string_view buffer) { parse(buffer); }
 
   basic_message& operator=(std::string_view buffer) {
     parse(buffer);
@@ -669,12 +725,11 @@ class basic_message {
   bool parse_response_start_line(const start_line_t& start_line) {
     version_ = detail::to_version(start_line[0]);
     auto status_code = start_line[1];
-    auto status_parse_result =
-        std::from_chars(status_code.data(),
-                        status_code.data() + status_code.size(),
-                        reinterpret_cast<uint16_t&>(status_code_));
+    auto [result, ec] = detail::to_arithmetic<status_code_t>(status_code);
 
-    if (status_parse_result.ec != std::errc{}) {
+    if (!ec) {
+      status_code_ = result;
+    } else {
       return set_error(std::errc::protocol_not_supported);
     }
   }
@@ -698,6 +753,15 @@ using response_view = basic_message<message_t::response>;
 using response = basic_message<message_t::response, true>;
 }  // namespace baklaga::http
 
+#include <ranges>
+
+namespace baklaga::http::concept_ {
+template <typename Ty>
+concept ReadBuffer = std::ranges::contiguous_range<Ty> && requires(Ty buf) {
+  { buf.resize(size_t{}) } -> std::same_as<void>;
+};
+}  // namespace baklaga::http::concept_
+
 #include <concepts>
 #include <span>
 #include <string_view>
@@ -710,8 +774,8 @@ concept socket = requires(Socket s, std::error_code& error) {
   {
     s.connect(std::string_view{}, std::string_view{}, error)
   } -> std::same_as<void>;
-  { s.read(std::span<uint8_t>{}, error) } -> std::same_as<size_t>;
-  { s.write(std::span<uint8_t>{}, error) } -> std::same_as<size_t>;
+  { s.read(ReadBuffer<uint8_t>, error) } -> std::same_as<size_t>;
+  { s.write(std::span<const uint8_t>{}, error) } -> std::same_as<size_t>;
   { s.shutdown(error) } -> std::same_as<void>;
   { s.close(error) } -> std::same_as<void>;
 };
@@ -723,14 +787,64 @@ class stream {
  public:
   stream() = default;
   stream(Socket&& socket) : socket_(std::move(socket)) {}
-  ~stream() { }
+  ~stream() {}
 
-  // void connect() {}
-  // void request(const http::request& request);
-  // void shutdown() {}
+  std::error_code connect(http::uri_view uri) {
+    std::error_code ec;
+    socket_.open(ec);
+    if (ec) {
+      return ec;
+    }
+
+    socket_.connect(ec);
+    return ec;
+  }
+  void write(http::request& request) {
+    fill_basic_data(request);
+    socket_.write(request.build());
+  }
+  template <concept_::ReadBuffer BufferTy>
+  http::response_view read(BufferTy& buffer) {
+    std::error_code ec;
+
+    while (!buffer.contains("\r\n\r\n")) {
+      auto bytes_incoming = socket_.available();
+      auto end_of_previous_data = buffer.size();
+      buffer.resize(buffer.size() + bytes_incoming);
+
+      auto buffer_span = std::span<uint8_t>(buffer);
+      auto read_buffer = buffer_span.subspan(end_of_previous_data);
+      auto bytes_readed = socket_.read(read_buffer, ec);
+      if (bytes_readed == 0 || ec) {
+        break;
+      }
+    }
+
+    http::response_view response{buffer};
+    auto [content_length, ec] =
+        detail::to_arithmetic<int>(response.headers().at("Content-Length"));
+    if (ec) {
+      return response;
+    }
+
+    buffer.resize(buffer.size() + content_length);
+    socket_.read(buffer.data() + content_length, ec);
+
+    return response;
+  }
+  void shutdown() {}
 
  private:
+  void fill_basic_data(http::request& request) {
+    auto& headers = request.headers();
+    headers.try_emplace("Host", uri_.authority().hostname());
+    headers.try_emplace("Accept", "*/*");
+    headers.try_emplace("User-Agent", "baklaga");
+    headers.try_emplace("Connection", "close");
+  }
+
   Socket socket_;
+  http::uri_view uri_;
 };
 }  // namespace baklaga::http
 

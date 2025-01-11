@@ -1,7 +1,7 @@
 [target.http_baklaga_example]
 type = "executable"
 sources = [
-  "uri_parse.cpp"
+  "message_parse.cpp"
 ]
 link-libraries = ["http_baklaga"]
 compile-features = ["cxx_std_20"]

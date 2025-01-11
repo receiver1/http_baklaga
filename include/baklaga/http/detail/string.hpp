@@ -6,6 +6,7 @@
 #include <ranges>
 #include <string_view>
 #include <system_error>
+#include <type_traits>
 
 namespace baklaga::http::detail {
 template <std::size_t N>
@@ -36,6 +37,16 @@ struct convert_result_t {
 template <typename T, typename DecayedT = std::decay_t<T>>
   requires(std::is_arithmetic_v<DecayedT>)
 [[nodiscard]] constexpr auto to_arithmetic(std::ranges::sized_range auto buffer,
+                                           const int base = 10) noexcept {
+  convert_result_t<DecayedT> result{};
+  std::from_chars(buffer.data(), buffer.data() + buffer.size(), result.value,
+                  base);
+  return result;
+}
+
+template <typename T, typename DecayedT = std::decay_t<T>>
+  requires(std::is_arithmetic_v<DecayedT>)
+[[nodiscard]] constexpr auto to_arithmetic(std::underlying_type_t<T> buffer,
                                            const int base = 10) noexcept {
   convert_result_t<DecayedT> result{};
   std::from_chars(buffer.data(), buffer.data() + buffer.size(), result.value,

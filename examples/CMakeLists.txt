@@ -9,7 +9,7 @@ endif()
 # Target: http_baklaga_example
 set(http_baklaga_example_SOURCES
 	cmake.toml
-	uri_parse.cpp
+	message_parse.cpp
 )
 
 add_executable(http_baklaga_example)

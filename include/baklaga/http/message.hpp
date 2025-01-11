@@ -153,15 +153,16 @@ class basic_message {
 
  private:
   bool parse_start_line(const start_line_t& start_line) {
+    bool line_parsed{false};
     if constexpr (Type == message_t::request) {
-      parse_request_start_line(start_line);
+      line_parsed = parse_request_start_line(start_line);
     } else if constexpr (Type == message_t::response) {
-      bool parsed = parse_response_start_line(start_line);
-      if (!parsed) {
+      line_parsed = parse_response_start_line(start_line);
+    }
+
+    if (!line_parsed) {
         return false;
       }
-      // status_ = start_line[2];
-    }
 
     if (version_ == detail::type_npos<decltype(version_)>()) {
       return set_error(std::errc::protocol_not_supported);
@@ -170,13 +171,15 @@ class basic_message {
     return true;
   }
 
-  void parse_request_start_line(const start_line_t& start_line) {
+  bool parse_request_start_line(const start_line_t& start_line) {
     method_ = detail::to_method(start_line[0]);
     if (method_ == detail::type_npos<method_t>()) {
       return set_error(std::errc::operation_not_supported);
     }
     target_ = start_line[1];
     version_ = detail::to_version(start_line[2]);
+    
+    return true;
   }
 
   bool parse_response_start_line(const start_line_t& start_line) {
