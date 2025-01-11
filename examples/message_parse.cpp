@@ -22,12 +22,21 @@ int main(int argc, char* argv[]) {
     std::cout << name << ": " << content << std::endl;
   }
 
+  // Parsing response
+  std::string_view response_str{
+      "HTTP/1.1 200 OK\r\n"
+      "User-Agent: baklaga11\r\n"
+      "Accept-Language: ru-RU\r\n"
+      "Content-Length: 4\r\n\r\n"};
+
+  baklaga::http::response_view response{response_str};
+
   // Building response
-  baklaga::http::response response{};
-  response.version(11);
-  response.status_code(http::status_code_t::not_found);
-  response.headers().emplace("User-Agent", "baklaga11");
-  response.headers().emplace("Language", "ru-RU");
+  baklaga::http::response response2{};
+  response2.version(11);
+  response2.status_code(http::status_code_t::not_found);
+  response2.headers().emplace("User-Agent", "baklaga11");
+  response2.headers().emplace("Language", "ru-RU");
 
   std::cout << "\n> Response:\n" << response.build() << std::endl;
 

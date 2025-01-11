@@ -28,29 +28,20 @@ template <std::size_t N>
 }
 
 template <typename T, typename DecayedT = std::decay_t<T>>
-  requires(std::is_arithmetic_v<DecayedT>)
+  requires(std::is_arithmetic_v<DecayedT> || std::is_enum_v<DecayedT>)
 struct convert_result_t {
   DecayedT value;
   std::error_code ec;
 };
 
-template <typename T, typename DecayedT = std::decay_t<T>>
-  requires(std::is_arithmetic_v<DecayedT>)
+template <typename T, typename DecayedT = std::decay_t<T>,
+          typename UnderlyingT = std::underlying_type_t<DecayedT>>
+  requires(std::is_arithmetic_v<DecayedT> || std::is_enum_v<DecayedT>)
 [[nodiscard]] constexpr auto to_arithmetic(std::ranges::sized_range auto buffer,
                                            const int base = 10) noexcept {
   convert_result_t<DecayedT> result{};
-  std::from_chars(buffer.data(), buffer.data() + buffer.size(), result.value,
-                  base);
-  return result;
-}
-
-template <typename T, typename DecayedT = std::decay_t<T>>
-  requires(std::is_arithmetic_v<DecayedT>)
-[[nodiscard]] constexpr auto to_arithmetic(std::underlying_type_t<T> buffer,
-                                           const int base = 10) noexcept {
-  convert_result_t<DecayedT> result{};
-  std::from_chars(buffer.data(), buffer.data() + buffer.size(), result.value,
-                  base);
+  std::from_chars(buffer.data(), buffer.data() + buffer.size(),
+                  reinterpret_cast<UnderlyingT&>(result.value), base);
   return result;
 }
 
