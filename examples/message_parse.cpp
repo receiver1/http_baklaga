@@ -1,6 +1,7 @@
 #include <baklaga/http/message.hpp>
 #include <iostream>
 #include <string_view>
+#include "baklaga/http/detail/status_code.hpp"
 
 int main(int argc, char* argv[]) {
   using namespace baklaga;
@@ -28,7 +29,7 @@ int main(int argc, char* argv[]) {
       "User-Agent: baklaga11\r\n"
       "Accept-Language: ru-RU\r\n"
       "Content-Length: 4\r\n\r\n"};
-
+      
   baklaga::http::response_view response{response_str};
 
   // Building response
