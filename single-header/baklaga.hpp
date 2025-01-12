@@ -35,7 +35,7 @@ template <std::size_t N>
 }
 
 template <typename T, typename DecayedT = std::decay_t<T>>
-  requires(std::is_arithmetic_v<DecayedT>)
+  requires(std::is_arithmetic_v<DecayedT> || std::is_enum_v<DecayedT>)
 struct convert_result_t {
   DecayedT value;
   std::error_code ec;
@@ -46,18 +46,17 @@ template <typename T, typename DecayedT = std::decay_t<T>>
 [[nodiscard]] constexpr auto to_arithmetic(std::ranges::sized_range auto buffer,
                                            const int base = 10) noexcept {
   convert_result_t<DecayedT> result{};
-  std::from_chars(buffer.data(), buffer.data() + buffer.size(), result.value,
-                  base);
+  std::from_chars(buffer.data(), buffer.data() + buffer.size(), result.value, base);
   return result;
 }
 
-template <typename T, typename DecayedT = std::decay_t<T>>
-  requires(std::is_arithmetic_v<DecayedT>)
-[[nodiscard]] constexpr auto to_arithmetic(std::underlying_type_t<T> buffer,
+template <typename T, typename DecayedT = std::decay_t<T>,
+          typename UnderlyingT = std::underlying_type_t<DecayedT>>
+  requires(std::is_arithmetic_v<DecayedT> || std::is_enum_v<DecayedT>)
+[[nodiscard]] constexpr auto to_arithmetic(std::ranges::sized_range auto buffer,
                                            const int base = 10) noexcept {
   convert_result_t<DecayedT> result{};
-  std::from_chars(buffer.data(), buffer.data() + buffer.size(), result.value,
-                  base);
+  std::from_chars(buffer.data(), buffer.data() + buffer.size(), reinterpret_cast<UnderlyingT&>(result.value), base);
   return result;
 }
 
@@ -696,15 +695,16 @@ class basic_message {
 
  private:
   bool parse_start_line(const start_line_t& start_line) {
+    bool line_parsed{false};
     if constexpr (Type == message_t::request) {
-      parse_request_start_line(start_line);
+      line_parsed = parse_request_start_line(start_line);
     } else if constexpr (Type == message_t::response) {
-      bool parsed = parse_response_start_line(start_line);
-      if (!parsed) {
+      line_parsed = parse_response_start_line(start_line);
+    }
+
+    if (!line_parsed) {
         return false;
       }
-      // status_ = start_line[2];
-    }
 
     if (version_ == detail::type_npos<decltype(version_)>()) {
       return set_error(std::errc::protocol_not_supported);
@@ -713,13 +713,15 @@ class basic_message {
     return true;
   }
 
-  void parse_request_start_line(const start_line_t& start_line) {
+  bool parse_request_start_line(const start_line_t& start_line) {
     method_ = detail::to_method(start_line[0]);
     if (method_ == detail::type_npos<method_t>()) {
       return set_error(std::errc::operation_not_supported);
     }
     target_ = start_line[1];
     version_ = detail::to_version(start_line[2]);
+    
+    return true;
   }
 
   bool parse_response_start_line(const start_line_t& start_line) {

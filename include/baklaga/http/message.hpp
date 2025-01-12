@@ -161,8 +161,8 @@ class basic_message {
     }
 
     if (!line_parsed) {
-        return false;
-      }
+      return false;
+    }
 
     if (version_ == detail::type_npos<decltype(version_)>()) {
       return set_error(std::errc::protocol_not_supported);
@@ -178,7 +178,7 @@ class basic_message {
     }
     target_ = start_line[1];
     version_ = detail::to_version(start_line[2]);
-    
+
     return true;
   }
 
@@ -186,12 +186,12 @@ class basic_message {
     version_ = detail::to_version(start_line[0]);
     auto status_code = start_line[1];
     auto [result, ec] = detail::to_arithmetic<status_code_t>(status_code);
-
-    if (!ec) {
-      status_code_ = result;
-    } else {
-      return set_error(std::errc::protocol_not_supported);
+    if (ec) {
+      return set_error(std::errc::protocol_error);
     }
+
+    status_code_ = result;
+    return true;
   }
 
   bool set_error(std::errc code) noexcept {
